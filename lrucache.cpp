@@ -37,8 +37,8 @@ template<class T,class Y>
 class LRUcache{
   private:
     int maxSize;
-    unordered_map<T,typename list<Node<T,Y> >::iterator > cache;
-    list<Node<T,Y>> lru;
+    unordered_map<T,typename list<Node<T,Y> *>::iterator > cache;
+    list<Node<T,Y>*> lru;
   public:
     LRUcache(int size){
       maxSize=size;
@@ -47,21 +47,11 @@ class LRUcache{
     void insertKeyValuePair(T key , Y value);      
     optional<Y> getValueFromKey(T key);
     T getMostRecentKey(){
-      return lru.front().key;      
+      return lru.front()->key;      
     }
 
-    void print_cache(){
-      cout<<"## Cache  ===="<<endl;
-      for(auto it = cache.begin();it != cache.end();it++){
-        cout << it->first<<" => ("<<it->second->key<<", "<<it->second->value<<")"<<endl;
-      }
-    }
-    void print_lru(){
-      cout<<"## LRU  ===="<<endl;
-      for(auto it = lru.begin();it!=lru.end();it++){
-        cout <<" ("<<it->key<<", "<<it->value<<")"<<endl;
-      }
-    }
+    void print_cache();
+    void print_lru();      
 
 };
 
@@ -69,14 +59,16 @@ template<class T,class Y>
 void LRUcache<T,Y>::insertKeyValuePair(T key , Y value){
   if(cache.count(key)==0){//la llave no existe
     if(cache.size()==maxSize){//el cache esta lleno                                  
-      cache.erase(lru.back().key);
+      cache.erase(lru.back()->key);
+      delete lru.back();
       lru.pop_back();          
     }      
-    lru.push_front(Node<T,Y>(key,value));
+    lru.push_front(new Node<T,Y>(key,value));
     cache.insert(make_pair(key,lru.begin()));
     return;
   }
-  lru.push_front(Node<T,Y>(key,value));
+  lru.push_front(new Node<T,Y>(key,value));
+  delete *cache[key];
   lru.erase(cache[key]);
   cache[key] = lru.begin();
 }
@@ -84,13 +76,28 @@ void LRUcache<T,Y>::insertKeyValuePair(T key , Y value){
 template<class T,class Y>
 optional<Y> LRUcache<T,Y>::getValueFromKey(T key){
   if(cache.count(key)==0)return{}; 
-  lru.push_front(Node<T,Y>(key,cache[key]->value));
+  lru.push_front(new Node<T,Y>(key,(*cache[key])->value));
+  delete *cache[key];
   lru.erase(cache[key]);
   cache[key] = lru.begin();
-  return cache[key]->value;
+  return (*cache[key])->value;
 }
 
+template<class T,class Y>
+void LRUcache<T,Y>::print_cache(){
+  cout<<"## Cache  ===="<<endl;
+  for(auto it = cache.begin();it != cache.end();it++){
+    cout << it->first<<" => ("<<(*it->second)->key<<", "<<(*it->second)->value<<")"<<endl;
+  }
+}
 
+template<class T,class Y>
+void LRUcache<T,Y>::print_lru(){
+  cout<<"## LRU  ===="<<endl;
+  for(auto it = lru.begin();it!=lru.end();it++){
+    cout <<" ("<<(*it)->key<<", "<<(*it)->value<<")"<<endl;
+  }
+}
 
 
 int main(){
@@ -105,7 +112,7 @@ int main(){
 
   cout<<endl<<c1.getMostRecentKey()<<endl;
   
-  cout<<(*c1.getValueFromKey("c"))<<endl;
+  cout<<*c1.getValueFromKey("c")<<endl; // retorna un optional<T>
   cout<<*c1.getValueFromKey("b")<<endl;
   cout<<*c1.getValueFromKey("a")<<endl;
 
