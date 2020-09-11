@@ -1,14 +1,25 @@
 /*
+  Se uso unordered_map y list.En la lista se guardo los nodos de manera que funcione como un queue(LRU). 
+  Unordered_map se uso para obtener tiempos de acceso O(1) a travez de las keys 
+  a los respectivos iteradores de la lista.
 
-//se uso unordered_map y list 
+   insertKeyValuePair() tiempo O(1): 
+            La key ya existe : se inserta un nuevo nodo con la actualizacion al comienzo de la lista(O(1)) y se
+            elimian el anterior(Se elimina en O(1) ya que el mapa guarda el iterador, con el iterador se elimina de la
+            lista en O(1) segun la documentacion)
 
+            La key no existe, cache con espacio libre : simplemente se incerta un nuevo nodo al inicio O(1)
+
+            La key no existe, cache lleno: se hace un pop_back a la lista(O(1)) y se incerta un nuevo nodo en top.
+
+   getValueFromKey() tiempo O(1) : Se accede al valor guardado en la lista a travez del mapa
+   getMostRecentKey() tiempo O(1) : se hace front() a la lista
 */
 #include <iostream>
 #include <unordered_map>
 #include <list>
 #include <string>
 #include <optional> 
-#include <functional>
 using namespace std;
 
 template<class TT,class YY>
